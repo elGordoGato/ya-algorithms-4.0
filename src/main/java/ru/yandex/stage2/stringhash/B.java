@@ -2,30 +2,30 @@ package ru.yandex.stage2.stringhash;
 
 import java.io.*;
 
-public class A {
+public class B {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("input.txt"));
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
 
         String s = br.readLine();
 
-        EqualChecker equalChecker = new EqualChecker(s);
+        HashChecker equalChecker = new HashChecker(s);
 
-        int times = Integer.parseInt(br.readLine());
+        int n = s.length();
 
-        for (int i = 0; i < times; i++) {
-            String[] tokens = br.readLine().split(" ");
-            int slen = Integer.parseInt(tokens[0]);
-            int from1 = Integer.parseInt(tokens[1]) + 1;
-            int from2 = Integer.parseInt(tokens[2]) + 1;
-            pw.println(equalChecker.isEqual(from1, from2, slen) ? "yes" : "no");
+        for (int i = 1; i <= n; i++) {
+            if(equalChecker.isEqual(1, 1+i, n-i)){
+                pw.print(i);
+                break;
+            }
         }
+
 
         br.close();
         pw.close();
     }
 
-    static class EqualChecker {
+    static class HashChecker {
         int n;
         long p;
         int x_;
@@ -33,7 +33,7 @@ public class A {
         long[] h;
         long[] x;
 
-        public EqualChecker(String s) {
+        public HashChecker(String s) {
             n = s.length();
             p = (long) (Math.pow(10, 9) + 7);
             x_ = 257;
@@ -55,6 +55,4 @@ public class A {
             );
         }
     }
-
-
 }

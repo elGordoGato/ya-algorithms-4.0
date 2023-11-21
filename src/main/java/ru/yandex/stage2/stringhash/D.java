@@ -2,30 +2,45 @@ package ru.yandex.stage2.stringhash;
 
 import java.io.*;
 
-public class A {
+public class D {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("input.txt"));
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
 
-        String s = br.readLine();
+        String[] nm = br.readLine().split(" ");
+        int n = Integer.parseInt(nm[0]);
+        int m = Integer.parseInt(nm[1]);
 
-        EqualChecker equalChecker = new EqualChecker(s);
+        StringBuilder sb = new StringBuilder(br.readLine());
 
-        int times = Integer.parseInt(br.readLine());
+        sb.append(" ").append(sb.reverse());
+        String s = sb.toString();
+        System.out.println(s);
 
-        for (int i = 0; i < times; i++) {
-            String[] tokens = br.readLine().split(" ");
-            int slen = Integer.parseInt(tokens[0]);
-            int from1 = Integer.parseInt(tokens[1]) + 1;
-            int from2 = Integer.parseInt(tokens[2]) + 1;
-            pw.println(equalChecker.isEqual(from1, from2, slen) ? "yes" : "no");
+
+        HashChecker equalChecker = new HashChecker(s);
+
+
+        for (int i = 1; i < n; i++) {
+            int counter = 0;
+            while (counter < n - i
+                    && equalChecker.isEqual(
+                    1, i + 1, counter + 1)) {
+                if (equalChecker.isEqual(1, i + 1, n - i - counter)) {
+                    counter = n - i - counter;
+                    break;
+                }
+                counter++;
+            }
+            pw.print(counter + " ");
         }
+
 
         br.close();
         pw.close();
     }
 
-    static class EqualChecker {
+    static class HashChecker {
         int n;
         long p;
         int x_;
@@ -33,15 +48,14 @@ public class A {
         long[] h;
         long[] x;
 
-        public EqualChecker(String s) {
-            n = s.length();
+        public HashChecker(String s) {
+            n = s.length()-1;
             p = (long) (Math.pow(10, 9) + 7);
             x_ = 257;
 
             h = new long[n + 1];
             x = new long[n + 1];
             x[0] = 1L;
-            s = " " + s;
             for (int i = 1; i < n + 1; i++) {
                 h[i] = (h[i - 1] * x_ + (int) s.charAt(i)) % p;
                 x[i] = (x[i - 1] * x_) % p;
@@ -55,6 +69,5 @@ public class A {
             );
         }
     }
-
-
 }
+
