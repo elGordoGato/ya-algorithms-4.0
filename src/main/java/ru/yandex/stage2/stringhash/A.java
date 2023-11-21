@@ -1,8 +1,8 @@
-package ru.yandex;
+package ru.yandex.stage2.stringhash;
 
 import java.io.*;
 
-public class DraftReader {
+public class A {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("input.txt"));
 
