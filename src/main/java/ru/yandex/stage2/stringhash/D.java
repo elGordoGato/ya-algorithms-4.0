@@ -11,19 +11,21 @@ public class D {
         int n = Integer.parseInt(nm[0]);
         int m = Integer.parseInt(nm[1]);
 
-        StringBuilder sb = new StringBuilder(br.readLine().replace(" ", ""));
+        String[] array = new String[2 * n + 1];
+        array[0] = "";
+        String[] tokens = br.readLine().split(" ");
+        for (int i = 0; i < n; i++) {
+            array[i + 1] = tokens[i];
+            array[2 * n - i] = tokens[i];
+        }
 
-        sb.append(sb.reverse());
-        String s = sb.toString();
-        System.out.println(s);
+
+        HashChecker equalChecker = new HashChecker(array, 2 * n, m);
 
 
-        HashChecker equalChecker = new HashChecker(s, m);
-
-
-        for (int i = n/2; i > 0; i--) {
-            if (equalChecker.isEqual(1, 2*n-2*i+1, i)){
-                pw.print(n-i + " ");
+        for (int i = n / 2; i > 0; i--) {
+            if (equalChecker.isEqual(1, 2 * n - 2 * i + 1, i)) {
+                pw.print(n - i + " ");
             }
         }
         pw.print(n);
@@ -41,16 +43,16 @@ public class D {
         long[] h;
         long[] x;
 
-        public HashChecker(String s, int m) {
-            n = s.length()-1;
+        public HashChecker(String[] array, int n, int m) {
+            this.n = n;
             p = (long) (Math.pow(10, 9) + 7);
-            x_ = m+1;
+            x_ = m + 1;
 
             h = new long[n + 1];
             x = new long[n + 1];
             x[0] = 1L;
             for (int i = 1; i < n + 1; i++) {
-                h[i] = (h[i - 1] * x_ + (int) s.charAt(i)) % p;
+                h[i] = (h[i - 1] * x_ + Integer.parseInt(array[i])) % p;
                 x[i] = (x[i - 1] * x_) % p;
             }
         }
