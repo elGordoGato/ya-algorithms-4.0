@@ -11,29 +11,22 @@ public class D {
         int n = Integer.parseInt(nm[0]);
         int m = Integer.parseInt(nm[1]);
 
-        StringBuilder sb = new StringBuilder(br.readLine());
+        StringBuilder sb = new StringBuilder(br.readLine().replace(" ", ""));
 
-        sb.append(" ").append(sb.reverse());
+        sb.append(sb.reverse());
         String s = sb.toString();
         System.out.println(s);
 
 
-        HashChecker equalChecker = new HashChecker(s);
+        HashChecker equalChecker = new HashChecker(s, m);
 
 
-        for (int i = 1; i < n; i++) {
-            int counter = 0;
-            while (counter < n - i
-                    && equalChecker.isEqual(
-                    1, i + 1, counter + 1)) {
-                if (equalChecker.isEqual(1, i + 1, n - i - counter)) {
-                    counter = n - i - counter;
-                    break;
-                }
-                counter++;
+        for (int i = n/2; i > 0; i--) {
+            if (equalChecker.isEqual(1, 2*n-2*i+1, i)){
+                pw.print(n-i + " ");
             }
-            pw.print(counter + " ");
         }
+        pw.print(n);
 
 
         br.close();
@@ -48,10 +41,10 @@ public class D {
         long[] h;
         long[] x;
 
-        public HashChecker(String s) {
+        public HashChecker(String s, int m) {
             n = s.length()-1;
             p = (long) (Math.pow(10, 9) + 7);
-            x_ = 257;
+            x_ = m+1;
 
             h = new long[n + 1];
             x = new long[n + 1];
