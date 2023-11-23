@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
-public class A {
+public class B {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("input.txt"));
 
@@ -20,10 +20,12 @@ public class A {
         int[][] nodeMatrix = new int[N + 1][N + 1];
         Queue<Node> notVisited = new PriorityQueue<>(N - 1);
         int[] shortestDist = new int[N + 1];
+        int[] prev = new int[N+1];
 
         for (int i = 1; i <= N; i++) {
             if(i!=S) notVisited.add(new Node(i, Integer.MAX_VALUE));
             shortestDist[i] = Integer.MAX_VALUE;
+            prev[i] = -1;
 
             tokens = br.readLine().split(" ");
             for (int j = 1; j <= N; j++) {
@@ -35,17 +37,31 @@ public class A {
 
         notVisited.add(new Node(S, 0));
         shortestDist[S] = 0;
+        prev[S] = S;
 
-        scanMatrix(nodeMatrix, notVisited, shortestDist);
+        scanMatrix(nodeMatrix, notVisited, shortestDist, prev);
 
-        pw.println(shortestDist[F]!= Integer.MAX_VALUE ? shortestDist[F]: -1);
-
+        int prevVertex = F;
+        StringBuilder sb = new StringBuilder();
+        if (prev[prevVertex] == -1) {
+            sb.append("-1");
+        } else {
+            while (prev[prevVertex] != prevVertex) {
+                sb.append(prevVertex).append(" ");
+                prevVertex = prev[prevVertex];
+            }
+            sb.append(S);
+        }
+        String[] wayback = sb.toString().split(" ");
+        for (int i = wayback.length-1; i >= 0; i--) {
+            pw.print(wayback[i] + " ");
+        }
 
         br.close();
         pw.close();
     }
 
-    private static void scanMatrix(int[][] nodeMatrix, Queue<Node> notVisited, int[] shortestDist) {
+    private static void scanMatrix(int[][] nodeMatrix, Queue<Node> notVisited, int[] shortestDist, int[] prev) {
 
         while (!notVisited.isEmpty()) {
             Node current = notVisited.poll();
@@ -60,6 +76,7 @@ public class A {
                 if (neighborDist > 0 && shortestDist[i] > neighborDist+dist) {
                     shortestDist[i] = neighborDist+dist;
                     notVisited.add(new Node(i, shortestDist[i]));
+                    prev[i] = vertex;
                 }
             }
         }
