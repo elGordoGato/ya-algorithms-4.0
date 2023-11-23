@@ -11,16 +11,23 @@ public class E {
         int n = s.length() + 1;
         StringBuilder sb = new StringBuilder(s).append(" ").reverse().append(s);
 
-
         HashChecker equalChecker = new HashChecker(sb.toString());
 
-        int counter = 1;
-        for (int i = 2; i < n; i++) {
-            int maxLen = Math.min(i, n - i);
-            counter += checkForPalindrome(equalChecker, n, i, i, maxLen) - i;
-            maxLen = Math.min(i - 1, n - i);
-            counter += checkForPalindrome(equalChecker, n, i - 1, i, maxLen + 1) - i;
+        int maxLen = 1;
+        int counter = n - 1;
+
+        if (n > 2) {
+            counter = 2;
+            counter += checkForPalindrome(equalChecker, n, 1, 2, maxLen) - 2;
         }
+
+        for (int i = 2; i < n - 1; i++) {
+            maxLen = Math.min(i - 1, n - i - 1);
+            counter += checkForPalindrome(equalChecker, n, i - 1, i + 1, maxLen) - i;
+            maxLen = Math.min(i, n - i - 1);
+            counter += checkForPalindrome(equalChecker, n, i, i + 1, maxLen) - i - 1;
+        }
+
         pw.print(counter);
 
         br.close();
@@ -28,50 +35,29 @@ public class E {
     }
 
     private static int checkForPalindrome(HashChecker equalChecker, int n, int left, int right, int maxLen) {
-        if (maxLen <= 1) {
+        if (maxLen == 0) {
             return right;
         }
+
         int checkedRange = maxLen - maxLen / 2;
-        if (equalChecker.isEqual(right, 2*n-left-1, checkedRange)) {
+
+        if (equalChecker.isEqual(right, 2 * n - left - 1, checkedRange)) {
+
             right = checkForPalindrome(equalChecker, n,
-                    left - maxLen / 2,
+                    left - checkedRange,
                     right + checkedRange,
                     maxLen / 2);
+
+        } else if (checkedRange == 1) {
+            return right;
         } else {
+
             right = checkForPalindrome(equalChecker, n,
                     left,
                     right,
-                    maxLen / 2);
+                    checkedRange);
         }
         return right;
-    }
-
-    public static int binarySearch(char c, String s) {
-        // Проверяем, что строка не пустая
-        if (s == null || s.isEmpty()) {
-            return -1;
-        }
-        // Определяем границы поиска
-        int left = 0; // Левая граница
-        int right = s.length() - 1; // Правая граница
-        // Пока левая граница не превысит правую
-        while (left <= right) {
-            // Находим середину отрезка
-            int mid = (left + right) / 2;
-            // Сравниваем символ в середине с искомым
-            if (s.charAt(mid) == c) {
-                // Если совпал, то возвращаем индекс
-                return mid;
-            } else if (s.charAt(mid) < c) {
-                // Если меньше, то сдвигаем левую границу за середину
-                left = mid + 1;
-            } else {
-                // Если больше, то сдвигаем правую границу перед серединой
-                right = mid - 1;
-            }
-        }
-        // Если не нашли, то возвращаем -1
-        return -1;
     }
 
 
