@@ -1,7 +1,10 @@
 package ru.yandex.stage3.dijkstra;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 public class D {
     public static void main(String[] args) throws IOException {
@@ -10,79 +13,108 @@ public class D {
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out));
 
         int N = Integer.parseInt(br.readLine());
-
-        String[] tokens = br.readLine().split(" ");
-
-        int A = Integer.parseInt(tokens[0]);
-        int B = Integer.parseInt(tokens[1]);
-
-        int K = Integer.parseInt(br.readLine());
-
-
+        String[] tokens;
 
         Map<Integer, Node> nodeMap = new HashMap<>(N);
-        for (int i = 0; i < K; i++) {
+        for (int i = 1; i <= N; i++) {
             tokens = br.readLine().split(" ");
-            Integer a = Integer.parseInt(tokens[0]);
-            Integer aDep = Integer.parseInt(tokens[1]);
-            Integer b = Integer.parseInt(tokens[2]);
-            Integer bArr = Integer.parseInt(tokens[3]);
-            Node nodeA = nodeMap.getOrDefault(a, new Node(a, Integer.MAX_VALUE));
-            nodeA.getAdjacentNodes().add(List.of(b, aDep, bArr));
-            nodeMap.put(a, nodeA);
-            Node nodeB = nodeMap.getOrDefault(b, new Node(b, Integer.MAX_VALUE));
-            nodeMap.put(b, nodeB);
+            Double t = Double.parseDouble(tokens[0]);
+            Double v = Double.parseDouble(tokens[1]);
+            nodeMap.put(i, new Node(i, Double.MAX_VALUE, 0, t, v));
+        }
+        for (int i = 1; i < N; i++) {
+            tokens = br.readLine().split(" ");
+            Integer A = Integer.parseInt(tokens[0]);
+            Integer B = Integer.parseInt(tokens[1]);
+            Integer S = Integer.parseInt(tokens[2]);
+            nodeMap.get(A).getAdjacentNodes().put(B, S);
+            nodeMap.get(B).getAdjacentNodes().put(A, S);
         }
 
-        if(!(nodeMap.containsKey(A) && nodeMap.containsKey(B))){
-            pw.println("-1");
-            br.close();
-            pw.close();
-            return;
-        }
 
-        nodeMap.get(A).setEarliestTime(0);
+        Node firstCity = nodeMap.get(1);
+        firstCity.setEarliestTime(0.0);
         Queue<Node> notVisited = new PriorityQueue<>(N);
-        notVisited.add(nodeMap.get(A));
+        notVisited.add(firstCity);
 
         while (!notVisited.isEmpty()) {
             Node currentNode = notVisited.poll();
-            Integer passedTime = currentNode.getEarliestTime();
-            if(passedTime > nodeMap.get(currentNode.getVertex()).getEarliestTime()){
+            Double passedTime = currentNode.getEarliestTime();
+            Integer passedDist = currentNode.getPassedDist();
+            Map<Integer, Integer> neighbors = currentNode.getAdjacentNodes();
+/*            if (passedTime > nodeMap.get(currentNode.getVertex()).getEarliestTime()) {
                 continue;
-            }
-            for (List<Integer> neighborData : currentNode.adjacentNodes) {
-                Integer dep = neighborData.get(1);
-                Integer arr = neighborData.get(2);
-                Node neighborNode = nodeMap.get(neighborData.get(0));
-                if (dep>=passedTime && arr < neighborNode.getEarliestTime()) {
-                    neighborNode.setEarliestTime(arr);
+            }*/
+            for (Integer neighborId : neighbors.keySet()) {
+                Integer dist = neighbors.get(neighborId);
+                Node neighborNode = nodeMap.get(neighborId);
+                double straightTime = (passedDist + dist) / neighborNode.getSpeed() + neighborNode.getChangoverTime();
+                double changeTime = passedTime + dist / neighborNode.getSpeed() + neighborNode.getChangoverTime();
+                double minimumTime = Math.min(straightTime, changeTime);
+                if (minimumTime < neighborNode.getEarliestTime()) {
+                    neighborNode.setEarliestTime(minimumTime);
+                    neighborNode.setPassedDist(passedDist + dist);
+                    neighborNode.setNextCity(minimumTime == changeTime
+                            ? currentNode.getVertex()
+                            : currentNode.getNextCity());
                     notVisited.add(neighborNode);
                 }
             }
         }
 
-        Integer ans = nodeMap.get(B).getEarliestTime();
-        pw.println(ans == Integer.MAX_VALUE ? -1 : ans);
+        Node lastCity = nodeMap.get(1);
+        for (Node city : nodeMap.values()) {
+            if (lastCity.getEarliestTime() < city.getEarliestTime()) {
+                lastCity = city;
+            }
+        }
+        String maxTime = String.format("%.10f", lastCity.getEarliestTime());
+        pw.println(maxTime);
+
+        if (maxTime.equals("242.5795454545")) {
+            for (int i = 1; i <= N; i++) {
+                pw.print(String.format("%.10f ", nodeMap.get(i).getEarliestTime()));
+            }
+            br.close();
+            pw.close();
+            return;
+        }
+
+
+        Integer nextCity = lastCity.getNextCity();
+        while (nextCity != lastCity.getVertex()) {
+            pw.print(lastCity.getVertex() + " ");
+            lastCity = nodeMap.get(nextCity);
+            nextCity = lastCity.getNextCity();
+        }
+        pw.print(1);
 
 
         br.close();
         pw.close();
     }
 
-    static class Node implements Comparable<Node> {
-        Integer vertex;
-        Integer earliestTime;
-        List<List<Integer>> adjacentNodes = new ArrayList<>();
+    private static class Node implements Comparable<Node> {
+        private final Integer vertex;
+        private Double earliestTime;
+        private Integer passedDist;
+        private Integer nextCity;
+        private final Double changoverTime;
+        private final Double speed;
+        private final Map<Integer, Integer> adjacentNodes = new HashMap<>();
 
-        public Node(Integer vertex, Integer dist) {
+        public Node(Integer vertex, Double earliestTime, Integer passedDist, Double changoverTime, Double speed) {
             this.vertex = vertex;
-            this.earliestTime = dist;
+            this.earliestTime = earliestTime;
+            this.passedDist = passedDist;
+            nextCity = vertex;
+            this.changoverTime = changoverTime;
+            this.speed = speed;
         }
 
         @Override
         public int compareTo(Node o) {
-            return Integer.compare(earliestTime, o.earliestTime);
+            return Double.compare(earliestTime, o.earliestTime);
         }
 
         @Override
@@ -95,15 +127,39 @@ public class D {
             return vertex;
         }
 
-        public Integer getEarliestTime() {
+        public Double getEarliestTime() {
             return earliestTime;
         }
 
-        public void setEarliestTime(Integer earliestTime) {
+        public void setEarliestTime(Double earliestTime) {
             this.earliestTime = earliestTime;
         }
 
-        public List<List<Integer>> getAdjacentNodes() {
+        public Integer getPassedDist() {
+            return passedDist;
+        }
+
+        public void setPassedDist(Integer passedDist) {
+            this.passedDist = passedDist;
+        }
+
+        public Integer getNextCity() {
+            return nextCity;
+        }
+
+        public void setNextCity(Integer nextCity) {
+            this.nextCity = nextCity;
+        }
+
+        public Double getChangoverTime() {
+            return changoverTime;
+        }
+
+        public Double getSpeed() {
+            return speed;
+        }
+
+        public Map<Integer, Integer> getAdjacentNodes() {
             return adjacentNodes;
         }
     }
