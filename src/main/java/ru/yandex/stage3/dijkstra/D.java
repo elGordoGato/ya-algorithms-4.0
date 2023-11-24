@@ -81,7 +81,7 @@ public class D {
         }
 
 
-        Integer nextCity = lastCity.getNextCity();
+        int nextCity = lastCity.getNextCity();
         while (nextCity != lastCity.getVertex()) {
             pw.print(lastCity.getVertex() + " ");
             lastCity = nodeMap.get(nextCity);
