@@ -1,65 +1,72 @@
 package ru.yandex.stage4.enumeration;
 
-import java.util.Arrays;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class D {
-    // константа для бесконечности
-    public static final int INF = 1000000000;
-    // максимальное число вершин
-    public static final int MAXN = 10;
+    // константа для бесконечност
 
     // число вершин
     public static int n;
     // матрица смежности
-    public static int[][] w = new int[MAXN][MAXN];
-    // массив для хранения значений d(S, v)
-    public static int[][] d = new int[1 << MAXN][MAXN];
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // создаём объект для считывания ввода
-        Scanner sc = new Scanner(System.in);
+        BufferedReader br = new BufferedReader(new FileReader("input.txt"));
         // считываем число вершин
-        n = sc.nextInt();
+        n = Integer.parseInt(br.readLine());
+        String[] tokens;
+
+        int minWay = Integer.MAX_VALUE;
+
+        int[][] matrix = new int[n][n];
+
+        Set<Integer> notVisited = new HashSet<>(n);
         // считываем матрицу смежности
         for (int i = 0; i < n; i++) {
+            notVisited.add(i);
+            tokens = br.readLine().split(" ");
             for (int j = 0; j < n; j++) {
-                w[i][j] = sc.nextInt();
+                int way = Integer.parseInt(tokens[j]);
+                matrix[i][j] = way;
+                minWay = Math.min(way, minWay);
             }
         }
-        // инициализируем массив d
-        for (int mask = 0; mask < (1 << n); mask++) {
-            Arrays.fill(d[mask], INF);
-        }
-        d[1][0] = 0; // база рекурсии
-        // перебираем все подмножества вершин
-        for (int mask = 1; mask < (1 << n); mask++) {
-            // перебираем все вершины, которые могут быть конечными
-            for (int v = 0; v < n; v++) {
-                // если вершина v принадлежит множеству mask
-                if ((mask & (1 << v)) != 0) {
-                    // перебираем все вершины, которые могут быть предыдущими
-                    for (int u = 0; u < n; u++) {
-                        // если вершина u принадлежит множеству mask и отлична от v
-                        if ((mask & (1 << u)) != 0 && u != v) {
-                            // обновляем значение d(mask, v)
-                            d[mask][v] = Math.min(d[mask][v], d[mask ^ (1 << v)][u] + w[u][v]);
-                        }
-                    }
-                }
-            }
-        }
-        // ищем минимальное значение суммарной длины цикла
-        int ans = INF;
-        for (int v = 0; v < n; v++) {
-            ans = Math.min(ans, d[(1 << n) - 1][v] + w[v][0]);
-        }
-        // выводим ответ или -1, если цикла не существует
-        if (ans == INF) {
+
+        int maxSum = Integer.MAX_VALUE;
+
+        maxSum = checkCycle(0, 0, matrix, notVisited, maxSum, minWay);
+        if(n <= 1){
+            System.out.println(0);
+        } else if (maxSum == Integer.MAX_VALUE){
             System.out.println(-1);
         } else {
-            System.out.println(ans);
+            System.out.println(maxSum);
         }
+        br.close();
+    }
+
+    private static int checkCycle(int current, int sum, int[][] matrix, Set<Integer> notVisited, int maxSum, int minWay) {
+        if (notVisited.size()==1 && matrix[current][0] > 0){
+            maxSum = Math.min(sum+matrix[current][0], maxSum);
+            return maxSum;
+        }
+        for (int i = 1; i < n; i++) {
+            if(matrix[current][i]>0 && notVisited.contains(i)) {
+                if(sum + matrix[current][i] + minWay*notVisited.size() > maxSum){
+                    continue;
+                }
+                notVisited.remove(i);
+                maxSum = checkCycle(i, sum + matrix[current][i], matrix, notVisited, maxSum, minWay);
+                notVisited.add(i);
+            }
+
+        }
+        return maxSum;
+
     }
 }
 
