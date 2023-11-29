@@ -11,9 +11,12 @@ public class D {
 
         final int N = Integer.parseInt(br.readLine());
         String[] tokens;
+        int[][] matrix = new int[N + 1][N + 1];
 
         Map<Integer, Node> nodeMap = new HashMap<>(N);
+        Set<Integer> notMarked = new HashSet<>(N);
         for (int i = 1; i <= N; i++) {
+            notMarked.add(i);
             tokens = br.readLine().split(" ");
             Double t = Double.parseDouble(tokens[0]);
             Double v = Double.parseDouble(tokens[1]);
@@ -28,8 +31,15 @@ public class D {
             nodeMap.get(B).getAdjacentNodes().put(A, S);
         }
 
-        fillWithVirtualWays(nodeMap);
-
+        for (int i = 1; i <= N; i++) {
+            fillWithVirtualWays(i, i, 0, nodeMap, matrix, notMarked, N);
+        }
+        for (int i = 1; i <= N; i++) {
+            for (int j = i; j <= N; j++) {
+                nodeMap.get(i).getAdjacentNodes().put(j, matrix[i][j]);
+                nodeMap.get(j).getAdjacentNodes().put(i, matrix[j][i]);
+            }
+        }
 
         Node firstCity = nodeMap.get(1);
         firstCity.setEarliestTime(0.0);
@@ -70,14 +80,14 @@ public class D {
         String maxTime = String.format("%.10f", lastCity.getEarliestTime());
         pw.println(maxTime);
 
-        if (maxTime.equals("242.5795454545")) {
-            for (int i = 1; i <= N; i++) {
-                pw.print(String.format("%.10f ", nodeMap.get(i).getEarliestTime()));
-            }
-            br.close();
-            pw.close();
-            return;
-        }
+//        if (maxTime.equals("242.5795454545")) {
+//            for (int i = 1; i <= N; i++) {
+//                pw.print(String.format("%.10f ", nodeMap.get(i).getEarliestTime()));
+//            }
+//            br.close();
+//            pw.close();
+//            return;
+//        }
 
 
         int nextCity = lastCity.getNextCity();
@@ -93,28 +103,19 @@ public class D {
         pw.close();
     }
 
-    private static void fillWithVirtualWays(Map<Integer, Node> nodeMap) {
-        int N = nodeMap.size();
-        Queue<Neighbor> unknownNeighbors = new PriorityQueue<>(N);
-        unknownNeighbors.add(new Neighbor(1, 0));
-        while (!unknownNeighbors.isEmpty()) {
-            Neighbor currentNeighbor = unknownNeighbors.poll();
-            int passedDist = currentNeighbor.getDist();
-            Node firstNode = nodeMap.get(1);
-            Node currentNode = nodeMap.get(currentNeighbor.getVertex());
-            Map<Integer, Integer> adjacentNode = currentNode.getAdjacentNodes();
-            for (Integer adjacentId : adjacentNode.keySet()) {
-                int dist = adjacentNode.get(adjacentId);
-                unknownNeighbors.add(new Neighbor(adjacentId, dist));
-
-                    firstNode.adjacentNodes.put(adjacentId, passedDist+dist);
-                    nodeMap.get(adjacentId).adjacentNodes.put(firstNode.vertex, dist+passedDist);
-
+    private static void fillWithVirtualWays(int initial, int current, int passedWay, Map<Integer, Node> nodeMap, int[][] matrix, Set<Integer> notMarked, int n) {
+        notMarked.remove(current);
+        for (Integer j : nodeMap.get(current).getAdjacentNodes().keySet()) {
+            if (notMarked.contains(j)) {
+                int neighborWay = nodeMap.get(current).getAdjacentNodes().get(j);
+                matrix[initial][j] = passedWay + neighborWay;
+                matrix[j][initial] = passedWay + neighborWay;
+                fillWithVirtualWays(initial, j, passedWay + neighborWay, nodeMap, matrix, notMarked, n);
             }
-
         }
-
+        notMarked.add(current);
     }
+
 
     private static class Neighbor implements Comparable<Neighbor> {
         private final Integer vertex;
