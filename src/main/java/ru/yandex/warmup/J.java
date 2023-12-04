@@ -21,9 +21,6 @@ public class J {
             long possible = (b - a) * groups;
             String ans = possible >= rest ? "YES" : "NO";
 
-//            BufferedReader ar = new BufferedReader(new FileReader("ans.txt"));
-//            pw.print(ans.equals(ar.readLine()) ? "" : n + " " + a + " " + b + " !!!  " );
-
 
             pw.println(ans);
         }
